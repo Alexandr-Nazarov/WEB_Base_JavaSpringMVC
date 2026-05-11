@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ClientsView</title>
+</head>
+<body>
+
+    <form action="/createClient" method="get">
+        <input type="submit" value="CREATE CLIENT">
+    </form><br>
+
+    <form action="/filterClients" method="get">
+        <label>Тип клиента:
+            <select name="filterType" th:selected="${filterType}">
+                <option value="All" th:selected="${'All' == filterType}">All</option>
+                <option value="Corporate" th:selected="${'Corporate' == filterType}">Corporate</option>
+                <option value="Individual" th:selected="${'Individual' == filterType}">Individual</option>
+            </select>
+        </label>
+        <label>Поиск: <input type='text' name='searchText' th:value="${searchText != null ? searchText : ''}" placeholder='Введите текст для поиска'>
+        </label>
+        <input type='submit' value='Применить фильтр'>
+    </form><br>
+
+    <table border="2" cellpadding="2" cellspacing="2">
+        <tr>
+            <th>ID</th>
+            <th>Наименование</th>
+            <th>Тип</th>
+            <th>Дата добавления</th>
+            <th>IP-адрес</th>
+            <th>MAC-адрес</th>
+            <th>Модель</th>
+            <th>Адрес</th>
+            <th>Действия</th>
+        </tr>
+        <tr>
+            <tr th:each="client : ${clientsCollection}">
+        <td th:text="${client.getClientId()!=null ? client.getClientId() : ''}"></td>
+        <td th:text="${client.getClientName()!=null ? client.getClientName() : ''}"></td>
+        <td th:text="${client.getType()!=null ? client.getType() : ''}"></td>
+        <td th:text="${client.getAdded()!=null ? client.getAdded() : ''}"></td>
+        <td>
+            <th:block th:each="address, iter : ${client.getAddresses()}">
+                <th:block th:text="${address.getIp()}"></th:block>
+                <th:block th:if="${!iter.last}"><hr></th:block>
+            </th:block>
+        </td>
+        <td>
+            <th:block th:each="address, iter : ${client.getAddresses()}">
+                <th:block th:text="${address.getMac()}"></th:block>
+                <th:block th:if="${!iter.last}"><hr></th:block>
+            </th:block>
+        </td>
+        <td>
+            <th:block th:each="address, iter : ${client.getAddresses()}">
+                <th:block th:text="${address.getModel()}"></th:block>
+                <th:block th:if="${!iter.last}"><hr></th:block>
+            </th:block>
+        </td>
+        <td>
+            <th:block th:each="address, iter : ${client.getAddresses()}">
+                <th:block th:text="${address.getAddress()}"></th:block>
+                <th:block th:if="${!iter.last}"><hr></th:block>
+            </th:block>
+        </td>
+        <td>
+            <a th:href="@{/updateClient(clientId=${client.getClientId()})}" title="Update Client">Update</a><br>
+            <a th:href="@{/deleteClient(clientId=${client.getClientId()})}" title="Delete Client">Delete</a>
+        </td>
+    </tr>
+    </table>
+</body>
+</html>

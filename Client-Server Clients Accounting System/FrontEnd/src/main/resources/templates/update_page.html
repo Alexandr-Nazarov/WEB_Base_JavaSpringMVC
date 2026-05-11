@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update</title>
+</head>
+<body>
+    <h2>Модификация клиента</h2>
+    <form action="/updateClient" method="post"><br>
+        <input type='hidden' name='clientId' th:value="${client.getClientId()}">
+        <input type='hidden' name='currentAddressIndex' th:value="${currentAddressIndex}">
+        <input type='hidden' name='currentAddressId' th:value="${currentAddressId}">
+        <label>Наименование клиента:
+            <input type='text' name='clientName' th:value="${client.getClientName()}" required>
+            <input type='hidden' name='added' th:value="${client.getAdded()}" required>
+        </label><br><br>
+
+        <label>Тип клиента:
+            <select name='type' required>
+                <option value="Corporate" th:selected="${'Corporate' == client.getType()}">Corporate</option>
+                <option value="Individual" th:selected="${'Individual' == client.getType()}">Individual</option>
+            </select>
+        </label><br><br>
+
+        <h3>Информация об адресе клиента (адрес <span th:text="${currentAddressIndex + 1}"></span> из <span th:text="${client.getAddresses().size()}"></span>)</h3>
+        <label>IP-адрес:
+            <input type='text' name='ip' th:value="${address.getIp()}" placeholder='192.168.0.1' required>
+        </label><br><br>
+        <label>MAC-адрес:
+            <input type='text' name='mac' th:value="${address.getMac()}" placeholder='00:1A:2B:3C:4D:5E' required>
+        </label><br><br>
+        <label>Модель устройства:
+            <input type='text' name='model' th:value="${address.getModel()}" required>
+        </label><br><br>
+        <label>Адрес места нахождения:
+            <input type='text' name='address' th:value="${address.getAddress()}" required>
+        </label><br><br>
+        <input type='hidden' name='addressId' th:value="${address.getAddressId()}" required>
+
+        <input type='submit' name ='action' value='UPDATE CLIENT'/>
+        <input type='submit' name ='action' value='ADD ADDRESS'/>
+        <input type='submit' name ='action' value='DELETE ADDRESS' th:attr="disabled=${client.getAddresses().size() <= 1 ? true : null}"/>
+    </form><br>
+
+    <form method='get' action='/updateClient' style='margin: 20px 0;'>
+        <input type='hidden' name='clientId' th:value="${client.getClientId()}">
+        <button type='submit' name='action' value='previous' th:attr="disabled=${currentAddressIndex <= 0 ? true : null}">Предыдущий</button>
+        <button type='submit' name='action' value='next' th:attr="disabled=${currentAddressIndex >= client.getAddresses().size() - 1 ? true : null}">Следующий</button>
+        <input type='hidden' name='currentAddressIndex' th:value="${currentAddressIndex}">
+        <input type='hidden' name='currentAddressId' th:value="${currentAddressId}">
+    </form>
+
+    <br><a href='/clients'>Вернуться к списку клиентов</a>
+    <p th:if="${error}" style="color: red;" th:text="${error}"></p>
+</body>
+</html>

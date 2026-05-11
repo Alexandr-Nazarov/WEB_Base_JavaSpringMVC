@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CreateClient</title>
+</head>
+<body>
+    <h2>Создание нового клиента</h2>
+    <form action="/clients" method="post"><br>
+        <label>Наименование <input type="text" name="clientName" required/></label><br><br>
+        <label>Тип клиента:
+            <select name='type' required>
+                <option value='Corporate'>Corporate</option>
+                <option value='Individual'>Individual</option>
+            </select>
+        </label><br><br>
+        <h4>Информация об адресе устройства</h4>
+        <label>IP-адрес: <input type='text' name='ip' placeholder='192.168.0.1' required></label><br><br>
+        <label>MAC-адрес: <input type='text' name='mac' placeholder='00:1A:2B:3C:4D:5E' required></label><br><br>
+        <label>Модель устройства: <input type='text' name='model' required></label><br><br>
+        <label>Адрес места нахождения: <input type='text' name='address' required></label><br><br>
+        <input type="submit" value="CREATE"/>
+    </form><br>
+    <br><a href='/clients'>Вернуться к списку клиентов</a>
+    <p th:if="${error}" style="color: red;" th:text="${error}"></p>
+</body>
+</html>
