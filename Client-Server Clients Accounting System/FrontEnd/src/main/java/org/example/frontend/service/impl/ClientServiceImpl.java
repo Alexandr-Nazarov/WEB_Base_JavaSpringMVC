@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 @Service
+@Primary
 public class ClientServiceImpl implements ClientService {
 
     @Override

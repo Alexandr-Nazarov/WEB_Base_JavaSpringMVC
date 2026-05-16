@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-@Primary
+//@Primary
 public class CustomClientServiceImpl implements ClientService {
 
     private List<Client> clients;

@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: BackEnd
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/J_200_lab
+    username: postgres
+    password: root
+  jpa:
+    show-sql: true
+
+server:
+  port: 8080
