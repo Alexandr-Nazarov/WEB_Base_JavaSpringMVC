@@ -17,4 +17,6 @@ public interface ClientService {
     Stream<Client> searchClients (String filterType , String searchText);
 
     void deleteClient(Integer clientId);
+
+    Optional<Client> updateClient(Client client);
 }

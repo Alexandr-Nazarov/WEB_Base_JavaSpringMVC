@@ -1,8 +1,11 @@
 package org.example.frontend.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 public class Addresses {
+    @JsonProperty(value = "address_id")
     private Integer addressId;
     private String ip;
     private String mac;

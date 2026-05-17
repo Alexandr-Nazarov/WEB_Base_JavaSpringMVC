@@ -56,7 +56,7 @@ public class ClientController {
         clAddress.setMac(mac);
         clAddress.setModel(clModel);
         clAddress.setAddress(address);
-        clAddress.setClient(client);
+        //clAddress.setClient(client);
 
         client.getAddresses().add(clAddress);
 
@@ -178,7 +178,7 @@ public class ClientController {
             clAddress.setMac(mac);
             clAddress.setModel(clModel);
             clAddress.setAddress(address);
-            clAddress.setClient(client);
+            //clAddress.setClient(client);
             clAddress.setAddressId(addressId);
             client.getAddresses().add(clAddress);
             clientService.updateClient(client);

@@ -3,6 +3,8 @@ package org.example.frontend.model;
 //import lombok.Builder;
 //import lombok.Data;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +12,9 @@ import java.util.List;
 //@Data
 //@Builder
 public class Client {
+    @JsonProperty(value = "client_id")
     private Integer clientId;
+    @JsonProperty(value = "client_name")
     private String clientName;
     private String type;
     private LocalDate added;

@@ -89,4 +89,23 @@ public class ClientServiceImpl implements ClientService {
     public void deleteClient(Integer clientId) {
         clientRepository.deleteById(clientId);
     }
+
+    @Override
+    public Optional<Client> updateClient(Client client) {
+        ClientEntity clientEntity = new ClientEntity();
+        clientEntity.setClientId(client.getClientId());
+        clientEntity.setClientName(client.getClientName());
+        clientEntity.setAdded(client.getAdded());
+        clientEntity.setType(client.getType());
+
+        Set<AddressEntity> addressEntities = convertAddressesToEntities(client.getAddresses(), clientEntity);
+        clientEntity.setAddressEntities(addressEntities);
+
+        clientRepository.save(clientEntity);
+
+        return  Optional.ofNullable(clientEntityListFunction.apply(clientEntity));
+    }
+
+
+
 }
