@@ -1,9 +1,15 @@
 package org.example.frontend.service.impl;
 
+import org.example.frontend.controller.ClientController;
 import org.example.frontend.exception.ExternalApiException;
+//import org.example.frontend.exception.FieldError;
+import org.example.frontend.exception.ValidationErrorResponse;
+import org.example.frontend.exception.ValidationException;
 import org.example.frontend.model.Addresses;
 import org.example.frontend.model.Client;
 import org.example.frontend.service.ClientService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.ParameterizedTypeReference;
@@ -12,7 +18,10 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.servlet.View;
 import org.springframework.web.util.UriComponentsBuilder;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
@@ -26,10 +35,13 @@ import java.util.stream.Stream;
 public class ClientServiceImpl implements ClientService {
 
     private final RestClient restClient;
+    private final View error;
+    private static final Logger log = LoggerFactory.getLogger(ClientServiceImpl.class);
 
     @Autowired
-    public ClientServiceImpl(RestClient restClient) {
+    public ClientServiceImpl(RestClient restClient, View error) {
         this.restClient = restClient;
+        this.error = error;
     }
 
     @Override
@@ -47,17 +59,57 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Optional<Client> create(Client client) {
-        Client created = restClient.post()
-                .uri("/clients")
-                .body(client)
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
-                    if (res.getStatusCode().value() == 409 ||  res.getStatusCode().value() == 422) { return;}
-                    handleErrorResponse(req, res);
-                })
-                .onStatus(HttpStatusCode::is5xxServerError, this::handleErrorResponse)
-                .body(Client.class);
-        return Optional.ofNullable(created);
+        try {
+            Client created = restClient.post()
+                    .uri("/clients")
+                    .body(client)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
+                        int statusCode = res.getStatusCode().value();
+                        log.warn("⚠️ Клиентская ошибка при создании: HTTP {}", statusCode);
+                        if (statusCode == 400) {
+                            try {
+                                String body = new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8);
+                                log.warn("📄 Тело ошибки валидации: {}", body);
+                                ValidationErrorResponse validationError = new ObjectMapper()
+                                        .readValue(body, ValidationErrorResponse.class);
+                                // Выбрасываем предметное исключение с деталями валидации
+                                throw new ValidationException(
+                                        validationError.getMessage(),
+                                        validationError.getAllErrorMessages()
+                                );
+                            } catch (IOException | JacksonException e) {
+                                log.error("❌ Не удалось распарсить ошибку валидации", e);
+                                throw new ValidationException(
+                                        "Ошибка валидации",
+                                        List.of("Не удалось прочитать детали ошибки")
+                                );
+                            }
+                        }
+                        // Для 409 (Conflict) и 422 (Unprocessable) — не выбрасываем исключение,
+                        // позволяем методу завершиться и вернуть Optional.empty()
+                        if (res.getStatusCode().value() == 409 || res.getStatusCode().value() == 422) {
+                            log.info("ℹ️ Статус {}: пользователь не создан (возможно, уже существует)", statusCode);
+                            return;
+                        }
+                        handleErrorResponse(req, res);
+                    })
+                    .onStatus(HttpStatusCode::is5xxServerError, this::handleErrorResponse)
+                    .body(Client.class);
+            return Optional.ofNullable(created);
+        } catch (ValidationException | ExternalApiException e) {
+            // Предметные исключения пробрасываем дальше — они уже залогированы
+            throw e;
+        } catch (Exception e) {
+            // Неожиданные ошибки логируем и оборачиваем
+            log.error("💥 Неожиданная ошибка при создании пользователя", e);
+            throw new ExternalApiException(
+                    "Внутренняя ошибка клиента",
+                    null,
+                    null,
+                    e
+            );
+        }
     }
 
     @Override

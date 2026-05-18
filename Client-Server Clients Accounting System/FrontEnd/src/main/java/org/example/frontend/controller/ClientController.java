@@ -1,8 +1,12 @@
 package org.example.frontend.controller;
 
+import org.example.frontend.exception.ValidationException;
 import org.example.frontend.model.Addresses;
 import org.example.frontend.model.Client;
 import org.example.frontend.service.ClientService;
+import org.example.frontend.service.impl.ClientServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +23,7 @@ import java.util.List;
 public class ClientController {
 
     private final ClientService clientService;
+    private static final Logger log = LoggerFactory.getLogger(ClientController.class);
 
     @Autowired
     public ClientController(ClientService clientService) {
@@ -59,9 +64,33 @@ public class ClientController {
         //clAddress.setClient(client);
 
         client.getAddresses().add(clAddress);
+        try {
+            clientService.create(client);
+            return getViewPage(model);
+        } catch (ValidationException e) {
+            // Шаг 3б (Ошибка валидации): показываем страницу с ошибками
 
-        clientService.create(client);
-        return getViewPage(model);
+            log.warn("⚠️ Ошибка валидации при создании пользователя: {}", e.getMessage());
+            log.warn("📋 Детали ошибок: {}", e.getErrorMessages());
+
+            // Передаём список ошибок в модель для отображения в шаблоне
+            model.addAttribute("validationErrors", e.getErrorMessages());
+
+            // Опционально: сохраняем введённые пользователем данные,
+            // чтобы не заставлять заполнять форму заново
+            //model.addAttribute("formData", client);
+
+            log.info("🔙 Возврат на страницу валидации с ошибками");
+
+            // Возвращаем шаблон страницы ошибок (без редиректа — остаёмся на том же URL)
+            return "person_validation_errors";
+
+        } catch (Exception e) {
+            // Шаг 3в (Неожиданная ошибка): логируем и пробрасываем дальше
+            // (можно добавить обработку для показа общей страницы ошибки)
+           // log.error("💥 Неожиданная ошибка при создании пользователя: email={}", email, e);
+            throw e; // Spring обработает как 500 Internal Server Error
+        }
     }
 
     @GetMapping(value = "/deleteClient")

@@ -4,6 +4,7 @@ package org.example.backend.model;
 //import lombok.Data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotEmpty;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ public class Client {
     @JsonProperty(value = "client_id")
     private Integer clientId;
     @JsonProperty(value = "client_name")
+    @NotEmpty(message = "Поле client_name не может быть пустым")
     private String clientName;
     private String type;
     private LocalDate added;

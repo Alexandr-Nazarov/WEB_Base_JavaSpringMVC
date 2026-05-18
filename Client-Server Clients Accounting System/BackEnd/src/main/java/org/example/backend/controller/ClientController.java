@@ -1,5 +1,6 @@
 package org.example.backend.controller;
 
+import jakarta.validation.Valid;
 import org.example.backend.model.Addresses;
 import org.example.backend.model.Client;
 import org.example.backend.model.entity.ClientEntity;
@@ -45,7 +46,8 @@ public class ClientController {
     }
 
     @PostMapping(consumes = "application/json", produces = "application/json")
-    public ResponseEntity<Client> createClient(@RequestBody Client client){
+    public ResponseEntity<Client> createClient(@RequestBody @Valid Client client){
+        log.info("Получен запрос createClient: {}", client.getClientName());
         return clientService.create(client)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
