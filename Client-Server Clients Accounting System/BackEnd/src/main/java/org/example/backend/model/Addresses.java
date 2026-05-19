@@ -1,16 +1,37 @@
 package org.example.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import org.hibernate.validator.constraints.Length;
 
 import java.util.Objects;
 
 public class Addresses {
     @JsonProperty(value = "address_id")
     private Integer addressId;
+
+    @NotEmpty(message = "Поле ip не может быть пустым")
+    @Pattern(regexp = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+            message = "Некорректный формат ip адреса")
+    // @Size(max = 25, message = "Длина поля ip не может превышать 25 символов")
     private String ip;
+
+    @NotEmpty(message = "Поле mac не может быть пустым")
+    @Pattern( regexp = "^[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}$",
+            message = "Некорректный формат mac адреса")
+    @Size(max = 20, message = "Длина поля mac не может превышать 20 символов")
     private String mac;
+
+    @NotEmpty(message = "Поле model не может быть пустым")
+    @Size(max = 100, message = "Длина поля model не может превышать 100 символов")
     private String model;
+
+    @NotEmpty(message = "Поле address не может быть пустым")
+    @Size(max = 200, message = "Длина поля address не может превышать 200 символов")
     private String address;
+
     private Client client;
 
     public Addresses(Integer addressId, String ip, String mac, String model, String address, Client client) {

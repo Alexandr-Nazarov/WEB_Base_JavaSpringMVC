@@ -4,22 +4,31 @@ package org.example.backend.model;
 //import lombok.Data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-//@Data
-//@Builder
 public class Client {
     @JsonProperty(value = "client_id")
     private Integer clientId;
+
     @JsonProperty(value = "client_name")
     @NotEmpty(message = "Поле client_name не может быть пустым")
+    @Pattern( regexp = "^[а-яА-ЯёЁ\\-\\\"\\,\\.\\s]+$",
+    message = "Имя клиента должно быть на русском языке")
+    @Size(max = 100, message = "Длина поля clientName не может превышать 100 символов")
     private String clientName;
+
+    @NotEmpty(message = "Поле type не может быть пустым")
     private String type;
+
     private LocalDate added;
+    @Valid
     private List<Addresses> addresses  = new ArrayList<>();;
 
     public Client(Integer clientId, String clientName, String type, LocalDate added, List<Addresses> addresses) {

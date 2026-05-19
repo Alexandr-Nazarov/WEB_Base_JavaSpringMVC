@@ -1,5 +1,6 @@
 package org.example.backend.service.impl;
 
+import jakarta.validation.Valid;
 import org.example.backend.mapper.ClientEntityToClientFunc;
 import org.example.backend.model.Addresses;
 import org.example.backend.model.Client;

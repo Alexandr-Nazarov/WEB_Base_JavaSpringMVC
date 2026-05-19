@@ -1,6 +1,7 @@
 package org.example.backend.model.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 
 import java.time.LocalDate;
 import java.util.LinkedHashSet;

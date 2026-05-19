@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,7 +35,7 @@ public class ClientController {
     @GetMapping
     public ResponseEntity<List<Client>> getClients(){
         log.info("Получен запрос getClients");
-        return ResponseEntity.ok(clientService.getClients().toList());
+        return ResponseEntity.ok(clientService.getClients().sorted(Comparator.comparing(Client::getClientId)).toList());
     }
 
     @GetMapping("/{id}")
@@ -81,7 +82,7 @@ public class ClientController {
     }
 
     @PutMapping("/updateClient")
-    public ResponseEntity<Client> updateClient(@RequestBody Client client){
+    public ResponseEntity<Client> updateClient(@RequestBody @Valid Client client){
         log.info("Получен запрос updateClient");
         return clientService.updateClient(client)
                 .map(ResponseEntity::ok)
@@ -90,7 +91,7 @@ public class ClientController {
 
     @PostMapping( "/addAddress")
     public ResponseEntity<Client> createAddress(
-            @RequestBody Addresses address,
+            @RequestBody @Valid Addresses address,
             @RequestParam(value = "clientId", required = false) Integer clientId){
         log.info("Получен запрос createAddress");
                   Optional<Client> client =  clientService.getClientById(clientId);

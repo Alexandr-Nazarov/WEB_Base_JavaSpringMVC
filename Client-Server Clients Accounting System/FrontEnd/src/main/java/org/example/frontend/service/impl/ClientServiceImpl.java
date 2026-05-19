@@ -157,25 +157,70 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public void updateClient(Client client) {
-        restClient.put()
-                .uri("/clients/updateClient", client)
-                .body(client)
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, this::handleErrorResponse)
-                .onStatus(HttpStatusCode::is5xxServerError, this::handleErrorResponse)
-                .toBodilessEntity();
+//        restClient.put()
+//                .uri("/clients/updateClient", client)
+//                .body(client)
+//                .retrieve()
+//                .onStatus(HttpStatusCode::is4xxClientError, this::handleErrorResponse)
+//                .onStatus(HttpStatusCode::is5xxServerError, this::handleErrorResponse)
+//                .toBodilessEntity();
+
+
+        try {
+            restClient.put()
+                    .uri("/clients/updateClient", client)
+                    .body(client)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
+                        int statusCode = res.getStatusCode().value();
+                        log.warn("⚠️ Клиентская ошибка при модификации: HTTP {}", statusCode);
+                        if (statusCode == 400) {
+                            try {
+                                String body = new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8);
+                                log.warn("📄 Тело ошибки валидации: {}", body);
+                                ValidationErrorResponse validationError = new ObjectMapper()
+                                        .readValue(body, ValidationErrorResponse.class);
+                                // Выбрасываем предметное исключение с деталями валидации
+                                throw new ValidationException(
+                                        validationError.getMessage(),
+                                        validationError.getAllErrorMessages()
+                                );
+                            } catch (IOException | JacksonException e) {
+                                log.error("❌ Не удалось распарсить ошибку валидации", e);
+                                throw new ValidationException(
+                                        "Ошибка валидации",
+                                        List.of("Не удалось прочитать детали ошибки")
+                                );
+                            }
+                        }
+                        // Для 409 (Conflict) и 422 (Unprocessable) — не выбрасываем исключение,
+                        // позволяем методу завершиться и вернуть Optional.empty()
+                        if (res.getStatusCode().value() == 409 || res.getStatusCode().value() == 422) {
+                            log.info("ℹ️ Статус {}: пользователь не модифицирован (возможно, уже существует)", statusCode);
+                            return;
+                        }
+                        handleErrorResponse(req, res);
+                    })
+                    .onStatus(HttpStatusCode::is5xxServerError, this::handleErrorResponse)
+                        .toBodilessEntity();
+
+        } catch (ValidationException | ExternalApiException e) {
+            // Предметные исключения пробрасываем дальше — они уже залогированы
+            throw e;
+        } catch (Exception e) {
+            // Неожиданные ошибки логируем и оборачиваем
+            log.error("💥 Неожиданная ошибка при создании пользователя", e);
+            throw new ExternalApiException(
+                    "Внутренняя ошибка клиента",
+                    null,
+                    null,
+                    e
+            );
+        }
     }
 
     @Override
     public void deleteAddress(Integer clientId, Integer addressId) {
-      //  UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("/clients/deleteAddress/{id}");
-//        if (clientId != null) {
-//            builder.queryParam("clientId", clientId);
-//        }
-//        if (addressId != null) {
-//            builder.queryParam("addressId", clientId);
-//        }
-
         restClient.delete()
                 .uri("/clients/deleteAddress/{id}", addressId)
                 .retrieve()
@@ -187,26 +232,81 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public void addAddress(Integer clientId, Addresses address) {
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("/clients/addAddress");
+//        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("/clients/addAddress");
+//
+//        if (clientId != null) {
+//            builder.queryParam("clientId", clientId);
+//        }
+//
+//        Addresses created = restClient.post()
+//                .uri(builder.toUriString()/*"/clients/addAddress"*/)
+//                .body(address)
+//                .retrieve()
+//                .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
+//                    if (res.getStatusCode().value() == 409 ||  res.getStatusCode().value() == 422) { return;}
+//                    handleErrorResponse(req, res);
+//                })
+//                .onStatus(HttpStatusCode::is5xxServerError, this::handleErrorResponse)
+//                .body(Addresses.class);
 
-        if (clientId != null) {
-            builder.queryParam("clientId", clientId);
+        try {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("/clients/addAddress");
+
+            if (clientId != null) {
+                builder.queryParam("clientId", clientId);
+            }
+
+            restClient.post()
+                    .uri(builder.toUriString())
+                    .body(address)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
+                        int statusCode = res.getStatusCode().value();
+                        log.warn("⚠️ Клиентская ошибка при добавлении адреса: HTTP {}", statusCode);
+                        if (statusCode == 400) {
+                            try {
+                                String body = new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8);
+                                log.warn("📄 Тело ошибки валидации: {}", body);
+                                ValidationErrorResponse validationError = new ObjectMapper()
+                                        .readValue(body, ValidationErrorResponse.class);
+                                // Выбрасываем предметное исключение с деталями валидации
+                                throw new ValidationException(
+                                        validationError.getMessage(),
+                                        validationError.getAllErrorMessages()
+                                );
+                            } catch (IOException | JacksonException e) {
+                                log.error("❌ Не удалось распарсить ошибку валидации", e);
+                                throw new ValidationException(
+                                        "Ошибка валидации",
+                                        List.of("Не удалось прочитать детали ошибки")
+                                );
+                            }
+                        }
+                        // Для 409 (Conflict) и 422 (Unprocessable) — не выбрасываем исключение,
+                        // позволяем методу завершиться и вернуть Optional.empty()
+                        if (res.getStatusCode().value() == 409 || res.getStatusCode().value() == 422) {
+                            log.info("ℹ️ Статус {}: пользователь не модифицирован (возможно, уже существует)", statusCode);
+                            return;
+                        }
+                        handleErrorResponse(req, res);
+                    })
+                    .onStatus(HttpStatusCode::is5xxServerError, this::handleErrorResponse)
+                    .body(Addresses.class);
+
+        } catch (ValidationException | ExternalApiException e) {
+            // Предметные исключения пробрасываем дальше — они уже залогированы
+            throw e;
+        } catch (Exception e) {
+            // Неожиданные ошибки логируем и оборачиваем
+            log.error("💥 Неожиданная ошибка при создании пользователя", e);
+            throw new ExternalApiException(
+                    "Внутренняя ошибка клиента",
+                    null,
+                    null,
+                    e
+            );
         }
 
-        Addresses created = restClient.post()
-                .uri(builder.toUriString()/*"/clients/addAddress"*/)
-                .body(address)
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
-                    if (res.getStatusCode().value() == 409 ||  res.getStatusCode().value() == 422) { return;}
-                    handleErrorResponse(req, res);
-                })
-                .onStatus(HttpStatusCode::is5xxServerError, this::handleErrorResponse)
-                .body(Addresses.class);
-
-//        Client client = findClientById(clientId);
-//        client.getAddresses().add(created);
-//        updateClient(client);
     }
 
     private void handleErrorResponse(HttpRequest request, ClientHttpResponse  response){

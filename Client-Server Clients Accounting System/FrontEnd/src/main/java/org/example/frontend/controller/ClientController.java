@@ -184,7 +184,7 @@ public class ClientController {
     }
 
     @PostMapping(value = "/updateClient")
-    public RedirectView/*String*/ updateClientPost(
+    public /*RedirectView*/String updateClientPost(
             @RequestParam("action") String action,
             @RequestParam("clientId") Integer clientId,
             @RequestParam("clientName") String clientName,
@@ -196,38 +196,65 @@ public class ClientController {
             @RequestParam("address") String address,
             @RequestParam("addressId") Integer addressId,
             Model model) {
-        if ("UPDATE CLIENT".equals(action)) {
-            Client client = new Client();
-            client.setClientId(clientId);
-            client.setClientName(clientName);
-            client.setType(type);
-            client.setAdded(added);
-            Addresses clAddress = new Addresses();
-            clAddress.setIp(ip);
-            clAddress.setMac(mac);
-            clAddress.setModel(clModel);
-            clAddress.setAddress(address);
-            //clAddress.setClient(client);
-            clAddress.setAddressId(addressId);
-            client.getAddresses().add(clAddress);
-            clientService.updateClient(client);
-        }
-        else if ("DELETE ADDRESS".equals(action)) {
-            clientService.deleteAddress(clientId, addressId);
-        }
-        else if ("ADD ADDRESS".equals(action)) {
-            Addresses clAddress = new Addresses();
-            clAddress.setIp(ip);
-            clAddress.setMac(mac);
-            clAddress.setModel(clModel);
-            clAddress.setAddress(address);
-            clientService.addAddress(clientId, clAddress);
+
+        try {
+            if ("UPDATE CLIENT".equals(action)) {
+                Client client = new Client();
+                client.setClientId(clientId);
+                client.setClientName(clientName);
+                client.setType(type);
+                client.setAdded(added);
+                Addresses clAddress = new Addresses();
+                clAddress.setIp(ip);
+                clAddress.setMac(mac);
+                clAddress.setModel(clModel);
+                clAddress.setAddress(address);
+                //clAddress.setClient(client);
+                clAddress.setAddressId(addressId);
+                client.getAddresses().add(clAddress);
+                //clientService.updateClient(client);
+                clientService.updateClient(client);
+
+            } else if ("DELETE ADDRESS".equals(action)) {
+                clientService.deleteAddress(clientId, addressId);
+            } else if ("ADD ADDRESS".equals(action)) {
+                Addresses clAddress = new Addresses();
+                clAddress.setIp(ip);
+                clAddress.setMac(mac);
+                clAddress.setModel(clModel);
+                clAddress.setAddress(address);
+                clientService.addAddress(clientId, clAddress);
+            }
+        } catch(ValidationException e){
+            // Шаг 3б (Ошибка валидации): показываем страницу с ошибками
+
+            log.warn("⚠️ Ошибка валидации при создании пользователя: {}", e.getMessage());
+            log.warn("📋 Детали ошибок: {}", e.getErrorMessages());
+
+            // Передаём список ошибок в модель для отображения в шаблоне
+            model.addAttribute("validationErrors", e.getErrorMessages());
+
+            // Опционально: сохраняем введённые пользователем данные,
+            // чтобы не заставлять заполнять форму заново
+            //model.addAttribute("formData", client);
+
+            log.info("🔙 Возврат на страницу валидации с ошибками");
+
+            // Возвращаем шаблон страницы ошибок (без редиректа — остаёмся на том же URL)
+            return "person_validation_errors";
+
+        } catch(Exception e){
+            // Шаг 3в (Неожиданная ошибка): логируем и пробрасываем дальше
+            // (можно добавить обработку для показа общей страницы ошибки)
+            // log.error("💥 Неожиданная ошибка при создании пользователя: email={}", email, e);
+            throw e; // Spring обработает как 500 Internal Server Error
         }
 
-        //return getViewPage(model);
 
-        RedirectView redirectView = new RedirectView();
-        redirectView.setUrl("/updateClient?clientId=" + clientId);
-        return  redirectView;
+
+//        RedirectView redirectView = new RedirectView();
+//        redirectView.setUrl("/updateClient?clientId=" + clientId);
+//        return  redirectView;
+        return "redirect:/updateClient?clientId=" + clientId;
     }
 }
