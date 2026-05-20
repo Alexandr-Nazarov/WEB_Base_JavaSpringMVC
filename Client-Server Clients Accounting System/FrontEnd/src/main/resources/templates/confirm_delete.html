@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Подтвердите удаление клиента</title>
+</head>
+<body>
+    <h2>Подтвердите удаление клиента</h2>
+    <form action="/deleteClient" method="get">
+        <input type='hidden' name='clientId' th:value="${clientId}">
+        <input type="submit" value="DELETE CLIENT">
+    </form><br>
+    <form action="/clients" method="get">
+        <input type="submit" value="CANCEL">
+    </form><br>
+</body>
+</html>

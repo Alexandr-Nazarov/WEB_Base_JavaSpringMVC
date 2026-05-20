@@ -67,7 +67,8 @@
         </td>
         <td>
             <a th:href="@{/updateClient(clientId=${client.getClientId()})}" title="Update Client">Update</a><br>
-            <a th:href="@{/deleteClient(clientId=${client.getClientId()})}" title="Delete Client">Delete</a>
+            <!--a th:href="@{/deleteClient(clientId=${client.getClientId()})}" title="Delete Client">Delete</a-->
+            <a th:href="@{/confirmDeleteClient(clientId=${client.getClientId()})}" title="Delete Client">Delete</a>
         </td>
     </tr>
     </table>

@@ -105,6 +105,15 @@ public class ClientController {
         return getViewPage(model);
     }
 
+    @GetMapping(value = "/confirmDeleteClient")
+    public String confirmDeleteClient(
+            @RequestParam("clientId") String clientId,
+            Model model
+    ) {
+        model.addAttribute("clientId", clientId);
+        return "confirm_delete";
+    }
+
 
     @GetMapping(value = "/filterClients")
     public String getFilteredViewPage(
